@@ -38,25 +38,65 @@ namespace LinqAvecLambda
             };
 
             var r1 = products.Where(p => p.Category.Tier == 1 && p.Price < 900.0);
-            Print("TIER 1 AND PRICE < 900", r1);
+            Print("TIER 1 AND PRICE < 900 ", r1);
+            var r1Alt =
+                from p in products // fonte de dados
+                where p.Category.Tier == 1 && p.Price < 900.0 // restrição
+                select p; // projeção
+            Print("TIER 1 AND PRICE < 900 (ALTERNATIVE) ", r1Alt);
 
             var r2 = products.Where(p => p.Category.Name == "Outils").Select(p => p.Name);
-            Print("NAMES OF PRODUCTS FROM TOOLS", r2);
-
+            Print("NAMES OF PRODUCTS FROM TOOLS ", r2);
+            var r2Alt =
+                from p in products
+                where p.Category.Name == "Tools"
+                select p.Name;
+            Print("NAMES OF PRODUCTS FROM TOOLS (ALT) ", r2Alt);
+            
             var r3 = products.Where(p => p.Name[0] == 'O').Select(p => new { p.Name, p.Price, CategoryName = p.Category.Name });
-            Print("NAMES STARTING WITH `O` AND ANONYMOUS OBJECT", r3);
+            Print("NAMES STARTING WITH `O` AND ANONYMOUS OBJECT ", r3);
+            var r3Alt =
+                from p in products
+                where p.Name[0] == 'C'
+                select new
+                {
+                    p.Name,
+                    p.Price,
+                    CategoryName = p.Category.Name
+                };
+            Print("NAMES STARTING WITH `O` AND ANONYMOUS OBJECT (ALT) ", r3Alt);
 
             var r4 = products.Where(p => p.Category.Tier == 1).OrderBy(p => p.Price).ThenBy(p => p.Name);
-            Print("TIER 1 ORDER BY PRICE THEN BY NAME", r4);
+            Print("TIER 1 ORDER BY PRICE THEN BY NAME ", r4);
+            var r4Alt =
+                from p in products
+                where p.Category.Tier == 1
+                orderby p.Name
+                orderby p.Price
+                select p;
+            Print("TIER 1 ORDER BY PRICE THEN BY NAME (ALT) ", r4Alt);
 
             var r5 = r4.Skip(2).Take(4);
-            Print("FROM LAST LIST IGNORE 2 FIRSTS", r5);
+            Print("FROM LAST LIST IGNORE 2 FIRSTS ", r5);
+            var r5Alt =
+                (from p in r4Alt select p).Skip(2).Take(4);
+            Print("FROM LAST LIST IGNORE 2 FIRSTS (ALT) ", r5Alt);
 
             var r6 = products.First();
             Console.WriteLine("FIRST: " + r6);
+            var r6Alt =
+                (from p in products select p).FirstOrDefault();
+            Console.WriteLine("FIRST (ALT): " + r6Alt);
 
             var r7 = products.Where(p => p.Price > 3000.0).FirstOrDefault();
-            Console.WriteLine("FIRST: " + r7);
+            Console.WriteLine("PRICE GREATER THAN 3000.0: " + r7);
+            var r7Alt =
+                (
+                    from p in products
+                    where p.Price > 3000.0
+                    select p
+                ).FirstOrDefault();
+            Console.WriteLine("PRICE GREATER THAN 3000.0 (ALT): " + r7Alt);
 
             var r8 = products.Where(p => p.Id == 1).SingleOrDefault();
             Console.WriteLine("WHERE ID IS 1" + r8);
@@ -84,7 +124,22 @@ namespace LinqAvecLambda
 
             Console.WriteLine();
 
+            Console.WriteLine("GROUPING BY CATEGORY");
             var r16 = products.GroupBy(p => p.Category);
+            foreach (IGrouping<Category, Product> group in r16)
+            {
+                Console.WriteLine("Category " + group.Key.Name + ": ");
+                foreach (Product product in group)
+                {
+                    Console.WriteLine(product);
+                }
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("GROUPING BY CATEGORY (ALT)");
+            var r16ALt =
+                from p in products
+                group p by p.Category;
             foreach (IGrouping<Category, Product> group in r16)
             {
                 Console.WriteLine("Category " + group.Key.Name + ": ");
